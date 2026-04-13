@@ -123,15 +123,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cl_2.cpp" />
+    <ClCompile Include="cl_3.cpp" />
+    <ClCompile Include="cl_4.cpp" />
+    <ClCompile Include="cl_5.cpp" />
+    <ClCompile Include="cl_6.cpp" />
     <ClCompile Include="cl_application.cpp" />
     <ClCompile Include="cl_base.cpp" />
-    <ClCompile Include="cl_node.cpp" />
     <ClCompile Include="courcework_1sem.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cl_2.h" />
+    <ClInclude Include="cl_3.h" />
+    <ClInclude Include="cl_4.h" />
+    <ClInclude Include="cl_5.h" />
+    <ClInclude Include="cl_6.h" />
     <ClInclude Include="cl_application.h" />
     <ClInclude Include="cl_base.h" />
-    <ClInclude Include="cl_node.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

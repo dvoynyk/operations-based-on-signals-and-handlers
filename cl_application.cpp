@@ -1,76 +1,82 @@
 #include "cl_application.h"
-#include "cl_node.h"
+#include "cl_base.h"
+#include "cl_2.h"
+#include "cl_3.h"
+#include "cl_4.h"
+#include "cl_5.h"
+#include "cl_6.h"
 #include <iostream>
-#include <string>
-#include <vector>
-
-cl_application::cl_application(cl_base* p_head_object)
-    : cl_base(p_head_object)
-{
-}
-
+using namespace std;
+cl_application::cl_application(cl_base* p_head_object) :cl_base(p_head_object) {}
 void cl_application::build_tree_objects()
 {
-    cl_base* header = this;
-    cl_base* sub = nullptr;
-    std::string head_name, sub_name;
-
-    std::cin >> head_name;
-    change_s_object_name(head_name);
-
-    while (true)
-    {
-        std::cin >> head_name >> sub_name;
-        if (head_name == sub_name)
-            break;
-
-        if (sub != nullptr && head_name == sub->get_s_object_name())
-            header = sub;
-
-        if (head_name == header->get_s_object_name())
-        {
-            if (header->get_adress_subordinate_object_name(sub_name) == nullptr)
-                sub = new cl_node(header, sub_name);
-        }
-    }
+	string root_name;
+	cin >> root_name;
+	change_s_object_name(root_name);
+	string head_name, sub_name;
+	int cl_obj;
+	cl_base* p_last = this;
+	while (cin >> head_name)
+	{
+		if (head_name == "endtree")
+		{
+			return;
+		}
+		cin >> sub_name >> cl_obj;
+		cl_base* p_head = p_last->search_object_all_three_name(head_name);
+		if (!p_head)
+		{
+			continue;
+		}
+		if (p_head->get_adress_subordinate_object_name(sub_name) != nullptr)
+		{
+			continue;
+		}
+		if (search_object_all_three_name(sub_name) != nullptr)
+		{
+			continue;
+		}
+		cl_base* p_new = nullptr;
+		switch (cl_obj)
+		{
+		case 2:
+			p_new = new cl_2(p_head, sub_name);
+			break;
+		case 3:
+			p_new = new cl_3(p_head, sub_name);
+			break;
+		case 4:
+			p_new = new cl_4(p_head, sub_name);
+			break;
+		case 5:
+			p_new = new cl_5(p_head, sub_name);
+			break;
+		case 6:
+			p_new = new cl_6(p_head, sub_name);
+			break;
+		default: break;
+		}
+		if (p_new != nullptr)
+		{
+			p_last = p_new;
+		}
+	}
 }
-
 int cl_application::exec_app()
 {
-    print_three();
-    int index, level;
-    std::string new_name;
-
-    while (std::cin >> level)
-    {
-        if (level == 0)
-            break;
-
-        std::cin >> index >> new_name;
-        std::vector<cl_base*> current_level;
-        current_level.push_back(this);
-        int current_number = 1;
-
-        while (current_number < level)
-        {
-            std::vector<cl_base*> next_level;
-            for (size_t i = 0; i < current_level.size(); ++i)
-            {
-                for (int j = 1; j <= current_level[i]->get_count_subordinate_objects(); ++j)
-                {
-                    next_level.push_back(current_level[i]->get_adress_subordinate_object_index(j));
-                }
-            }
-            current_level = next_level;
-            ++current_number;
-        }
-
-        if (index >= 1 && index <= static_cast<int>(current_level.size()))
-        {
-            current_level[index - 1]->change_s_object_name(new_name);
-        }
-    }
-
-    print_three();
-    return 0;
+	cout << "Object tree" << endl;
+	print_tree();
+	string head_name;
+	int state;
+	while (cin >> head_name >> state)
+	{
+		cl_base* p_object = search_object_all_three_name(head_name);
+		if (p_object != nullptr)
+		{
+			p_object->set_ready(state);
+		}
+	}
+	cout << "The tree of objects and their readiness" << endl;
+	print_tree_status();
+	return(0);
 }
