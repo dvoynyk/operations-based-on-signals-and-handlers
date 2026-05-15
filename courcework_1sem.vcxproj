@@ -123,21 +123,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="cl_2.cpp" />
-    <ClCompile Include="cl_3.cpp" />
-    <ClCompile Include="cl_4.cpp" />
-    <ClCompile Include="cl_5.cpp" />
-    <ClCompile Include="cl_6.cpp" />
+    <ClCompile Include="cl_cartridge.cpp" />
+    <ClCompile Include="cl_input.cpp" />
+    <ClCompile Include="cl_output.cpp" />
+    <ClCompile Include="cl_document.cpp" />
+    <ClCompile Include="cl_pc.cpp" />
+    <ClCompile Include="cl_printer.cpp" />
+    <ClCompile Include="cl_tray.cpp" />
     <ClCompile Include="cl_application.cpp" />
     <ClCompile Include="cl_base.cpp" />
     <ClCompile Include="courcework_1sem.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cl_2.h" />
-    <ClInclude Include="cl_3.h" />
-    <ClInclude Include="cl_4.h" />
-    <ClInclude Include="cl_5.h" />
-    <ClInclude Include="cl_6.h" />
+    <ClInclude Include="cl_cartridge.h" />
+    <ClInclude Include="cl_input.h" />
+    <ClInclude Include="cl_output.h" />
+    <ClInclude Include="cl_document.h" />
+    <ClInclude Include="cl_pc.h" />
+    <ClInclude Include="cl_printer.h" />
+    <ClInclude Include="cl_tray.h" />
     <ClInclude Include="cl_application.h" />
     <ClInclude Include="cl_base.h" />
   </ItemGroup>
