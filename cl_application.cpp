@@ -32,7 +32,7 @@ void cl_application::signal_msg(string& s)
 
 void cl_application::build_tree_objects()
 {
-    // Создаём дерево системы
+    // Создание объектов системы
     p_input = new cl_input(this, "Input");
     p_output = new cl_output(this, "Output");
     p_printer = new cl_printer(this, "Printer");
@@ -41,29 +41,29 @@ void cl_application::build_tree_objects()
     p_cartridge = new cl_cartridge(p_printer, "Cartridge");
     p_current_doc = new cl_document(p_printer, "Current_document");
 
-    // Связь: System.signal_msg -> Output.handler_print
-    this->set_connect(SIGNAL_D(cl_application::signal_msg), p_output, HANDLER_D(cl_output::handler_print));
+    // Связь вывода
+    set_connect(
+        SIGNAL_D(cl_application::signal_msg),
+        p_output,
+        HANDLER_D(cl_output::handler_print)
+    );
 
-    // Всё включаем
+    // Включаем все объекты
     set_state_branch(1);
 
-    // Читаем настройки (3 строки)
     string line;
 
-    // 1) n
+    // Количество ПК
     p_input->emit_signal(SIGNAL_D(cl_input::signal_read_line), line);
-    line = trim_spaces(line);
-    n = atoi(line.c_str());
+    istringstream iss1(line);
+    iss1 >> n;
 
-    // 2) m k q
+    // Параметры m k q
     p_input->emit_signal(SIGNAL_D(cl_input::signal_read_line), line);
-    line = trim_spaces(line);
-    {
-        istringstream iss(line);
-        iss >> m >> k >> q;
-    }
+    istringstream iss2(line);
+    iss2 >> m >> k >> q;
 
-    // 3) End of settings
+    // End of settings
     p_input->emit_signal(SIGNAL_D(cl_input::signal_read_line), line);
 
     // Инициализация принтера
@@ -72,23 +72,26 @@ void cl_application::build_tree_objects()
     p_current_doc->clear();
     p_printer->init(q, p_tray, p_cartridge, p_current_doc);
 
-    // Создаём ПК 1..n, связываем их с принтером
+    // Создание ПК
     for (int i = 1; i <= n; i++)
     {
-        string pc_name = "PC_" + to_string(i);
-        cl_pc* pc = new cl_pc(this, pc_name, i);
+        string name = "PC_" + to_string(i);
+        cl_pc* pc = new cl_pc(this, name, i);
         pcs.push_back(pc);
 
-        // PC.signal_to_printer -> Printer.handler_add_request
-        pc->set_connect(SIGNAL_D(cl_pc::signal_to_printer), p_printer, HANDLER_D(cl_printer::handler_add_request));
+        pc->set_connect(
+            SIGNAL_D(cl_pc::signal_to_printer),
+            p_printer,
+            HANDLER_D(cl_printer::handler_add_request)
+        );
     }
+
     p_printer->set_pcs(pcs);
 
-	set_state_branch(1);
+    set_state_branch(1);
 
-    // Готовность системы
     string msg = "Ready to work";
-    this->emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
+    emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
 }
 
 int cl_application::exec_app()
@@ -96,116 +99,122 @@ int cl_application::exec_app()
     int tact = 1;
     string line;
 
-    while (true)
+    // Читаем команды до выключения системы
+    while (p_input->emit_signal(SIGNAL_D(cl_input::signal_read_line), line), cin)
     {
-        // 1) прочитать строку команды (пустая строка = пустая команда)
-        p_input->emit_signal(SIGNAL_D(cl_input::signal_read_line), line);
+        string cmd = line;
 
-        // если вдруг конец ввода
-        if (!cin && line.size() == 0) return 0;
-
-        string cmd = trim_spaces(line);
-
-        // SHOWTREE: вывести дерево готовности и завершить
+        // SHOWTREE
         if (cmd == "SHOWTREE")
         {
             print_tree_status();
             return 0;
         }
 
-        // Turn off the system: вывести и завершить
+        // Завершение работы
         if (cmd == "Turn off the system")
         {
             string msg = "Turn off the system";
-            this->emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
+            emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
             return 0;
         }
 
-        // 2) обработка команд статуса
+        // Paper tray condition
         if (cmd == "Paper tray condition")
         {
-            ostringstream out;
-            out << "Paper tray condition: " << p_tray->get_sheets();
-            string msg = out.str();
-            this->emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
+            string msg = "Paper tray condition: " + to_string(p_tray->get_sheets());
+            emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
         }
+
+        else if (cmd == "Load paper tray")
+        {
+            p_tray->start_loading();
+        }
+
+        else if (cmd == "Replace cartridge")
+        {
+            p_printer->clear_queue();
+            p_cartridge->start_replacing();
+        }
+
+        // Cartridge condition
         else if (cmd == "Cartridge condition")
         {
-            ostringstream out;
-            out << "Cartridge: " << p_cartridge->get_remaining();
-            string msg = out.str();
-            this->emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
+            string msg = "Cartridge: " +
+                to_string(p_cartridge->get_remaining());
+            emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
         }
+
+        // System status
         else if (cmd == "System status")
         {
             string msg = p_printer->get_system_status_line(tact);
-            this->emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
+            emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
         }
-        else
+
+        // Команды PC
+        else if (cmd.substr(0, 2) == "PC")
         {
-            // 3) команды PC...
-            if (cmd.size() >= 2 && cmd[0] == 'P' && cmd[1] == 'C')
+            istringstream iss(cmd);
+            string w1, w2;
+            iss >> w1 >> w2;
+
+            // PC condition
+            if (w2 == "condition")
             {
-                istringstream iss(cmd);
-                string w1, w2;
-                iss >> w1; // PC
-                iss >> w2;
+                int pc_num;
+                iss >> pc_num;
 
-                if (w2 == "condition")
+                for (int i = 0; i < pcs.size(); i++)
                 {
-                    int pc_num;
-                    iss >> pc_num;
-
-                    cl_pc* pc = nullptr;
-                    for (int i = 0; i < (int)pcs.size(); i++)
-                        if (pcs[i]->get_pc_number() == pc_num) { pc = pcs[i]; break; }
-
-                    if (pc != nullptr)
+                    if (pcs[i]->get_pc_number() == pc_num)
                     {
-                        string msg = pc->get_condition_line();
-                        this->emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
-                    }
-                }
-                else
-                {
-                    // PC <номер> <листы> <название...>
-                    int pc_num = atoi(w2.c_str());
-                    int pages = 0;
-                    iss >> pages;
-
-                    string title;
-                    getline(iss, title);
-                    title = trim_spaces(title);
-
-                    cl_pc* pc = nullptr;
-                    for (int i = 0; i < (int)pcs.size(); i++)
-                        if (pcs[i]->get_pc_number() == pc_num) { pc = pcs[i]; break; }
-
-                    if (pc != nullptr && pc->is_on())
-                    {
-                        // создаём документ-подчинённый ПК
-                        string obj_name = "doc_" + to_string(tact); // уникально по такту
-                        cl_document* d = new cl_document(pc, obj_name);
-                        d->init(pc_num, title, pages, tact);
-                        d->set_ready(1);
-
-                        // добавляем в очередь ПК
-                        pc->push_document_name(obj_name);
-
-                        // посылаем запрос принтеру (координата документа)
-                        string doc_path = d->get_absolute_path();
-                        pc->emit_signal(SIGNAL_D(cl_pc::signal_to_printer), doc_path);
+                        string msg = pcs[i]->get_condition_line();
+                        emit_signal(SIGNAL_D(cl_application::signal_msg), msg);
+                        break;
                     }
                 }
             }
+            else
+            {
+                // PC j pages title
+                int pc_num = stoi(w2);
+                int pages;
+                iss >> pages;
 
-            // пустая команда: cmd == "" -> просто такт, ничего не делаем
+                string title;
+                getline(iss, title);
+
+                for (int i = 0; i < pcs.size(); i++)
+                {
+                    if (pcs[i]->get_pc_number() == pc_num &&
+                        pcs[i]->is_on())
+                    {
+                        string obj_name = "doc_" + to_string(tact);
+
+                        cl_document* d =
+                            new cl_document(pcs[i], obj_name);
+
+                        d->init(pc_num, title, pages, tact);
+                        d->set_ready(1);
+
+                        pcs[i]->push_document_name(obj_name);
+
+                        string path = d->get_absolute_path();
+
+                        pcs[i]->emit_signal(
+                            SIGNAL_D(cl_pc::signal_to_printer),
+                            path
+                        );
+
+                        break;
+                    }
+                }
+            }
         }
 
-        // 4) отработка такта принтера
-        p_printer->do_tact();
-
-        // 5) следующий такт
+        // Выполнение такта
+        p_printer->do_tact();   
         tact++;
     }
 

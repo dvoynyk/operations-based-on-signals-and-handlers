@@ -50,89 +50,92 @@ void cl_printer::handler_add_request(string doc_path)
 
 void cl_printer::do_tact()
 {
-    // 1) если идёт загрузка бумаги — тикаем
+    // 1. Если идёт загрузка лотка — уменьшаем таймер
     if (tray->is_loading())
+    {
         tray->do_tact_loading();
+        return;
+    }
 
-    // 2) если идёт замена картриджа — принтер выключен, тикаем замену и выходим
+    // 2. Если идёт замена картриджа — уменьшаем таймер
     if (cartridge->is_replacing())
     {
         power_on = false;
         cartridge->do_tact_replacing();
 
-        // замена закончилась -> включаем принтер и восстанавливаем очередь запросов из документов на ПК
+        // Если замена завершена — включаем принтер
         if (!cartridge->is_replacing())
         {
             power_on = true;
-            queue_req.clear();
-
-            for (int i = 0; i < (int)pcs.size(); i++)
-            {
-                vector<string> docs = pcs[i]->get_document_names();
-                for (int j = 0; j < (int)docs.size(); j++)
-                {
-                    cl_base* pdoc = pcs[i]->get_adress_subordinate_object_name(docs[j]);
-                    cl_document* d = (cl_document*)pdoc;
-                    if (d != nullptr)
-                    {
-                        string path = d->get_absolute_path();
-                        handler_add_request(path);
-                    }
-                }
-            }
+            queue_req.clear();   // очередь очищается по ТЗ
         }
+
         return;
     }
 
-    if (!power_on) return;
-
-    // 3) если бумаги нет — автоматически запускаем загрузку на 3 такта
-    if (tray->get_sheets() == 0 && !tray->is_loading())
-        tray->start_loading();
-
-    // 4) если чернила кончились — начать замену (8 тактов), очистить очередь запросов
-    if (cartridge->get_remaining() == 0 && !cartridge->is_replacing())
-    {
-        queue_req.clear();             // по условию при выключении очередь запросов стирается
-        cartridge->start_replacing();  // начнётся замена
+    // 3. Если принтер выключен — ничего не делаем
+    if (!power_on)
         return;
-    }
 
-    // 5) если текущего документа нет, берём следующий из очереди запросов
-    if (current_doc->get_pages_left() == 0 && !queue_req.empty())
+    // 4. Если нет бумаги — ждём команду загрузки
+    if (tray->get_sheets() == 0)
+        return;
+
+    // 5. Если нет чернил — ждём команду замены
+    if (cartridge->get_remaining() == 0)
+        return;
+
+    // 6. Если текущего документа нет — берём следующий
+    if (current_doc->get_pages_left() == 0)
     {
+        if (queue_req.empty())
+            return;
+
         cl_base* p = get_pointer_by_path(queue_req[0].doc_path);
+
         if (p != nullptr)
         {
             cl_document* d = (cl_document*)p;
 
-            // копируем документ на принтер (в current_doc)
-            current_doc->init(d->get_pc_number(), d->get_title(), d->get_pages_left(), d->get_tact_added());
+            current_doc->init(
+                d->get_pc_number(),
+                d->get_title(),
+                d->get_pages_left(),
+                d->get_tact_added()
+            );
 
-            // удаляем документ с ПК (и из структуры очереди ПК)
             cl_pc* pc = (cl_pc*)d->get_p_head_object();
+
             if (pc != nullptr)
             {
-                pc->remove_document_name(d->get_s_object_name()); // убрать из doc_queue
-                pc->del_sub_obj(d->get_s_object_name());          // удалить объект документа
+                pc->remove_document_name(d->get_s_object_name());
+                pc->del_sub_obj(d->get_s_object_name());
             }
         }
+
         queue_req.erase(queue_req.begin());
     }
 
-    // 6) печать текущего документа, если есть ресурсы
+    // 7. Печать документа
     int pages_left = current_doc->get_pages_left();
-    if (pages_left == 0) return;
-    if (tray->get_sheets() == 0) return;
-    if (cartridge->get_remaining() == 0) return;
+
+    if (pages_left == 0)
+        return;
 
     int can_print = q;
-    if (can_print > pages_left) can_print = pages_left;
-    if (can_print > tray->get_sheets()) can_print = tray->get_sheets();
-    if (can_print > cartridge->get_remaining()) can_print = cartridge->get_remaining();
+
+    if (can_print > pages_left)
+        can_print = pages_left;
+
+    if (can_print > tray->get_sheets())
+        can_print = tray->get_sheets();
+
+    if (can_print > cartridge->get_remaining())
+        can_print = cartridge->get_remaining();
 
     tray->consume(can_print);
     cartridge->consume(can_print);
+
     current_doc->set_pages_left(pages_left - can_print);
 
     if (current_doc->get_pages_left() == 0)
@@ -191,4 +194,9 @@ string cl_printer::get_system_status_line(int tact_number)
     }
 
     return out.str();
+}
+
+void cl_printer::clear_queue()
+{
+    queue_req.clear();
 }

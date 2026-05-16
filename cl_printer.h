@@ -48,6 +48,8 @@ public:
     int get_queue_size();
     string get_system_status_line(int tact_number);
 
+    void clear_queue();
+
     int get_number_class() { return 1; } // не обязательно
 };
 
