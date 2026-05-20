@@ -1,37 +1,107 @@
+
 #include "cl_cartridge.h"
 
 cl_cartridge::cl_cartridge(cl_base* p_head_object, string s_object_name)
-    : cl_base(p_head_object, s_object_name)
+	:cl_base(p_head_object, s_object_name)
 {
-}
 
+}
 void cl_cartridge::init(int k)
 {
-    capacity = k;
-    remaining = k;
-}
+	//--------------------------------------------------
+	// Инициализация количества листов для картриджа
+	// Параметры:
+	//     int k, количество листов, печаемых от одного картриджа
+	// Возвращаемое значение:
+	//     Не возвращает
+	//--------------------------------------------------
+	// 1.1 Присвоение закрытому полю capacity значения переменной k
+	// 2.1 Присвоение закрытому полю remaining значения переменной k
 
+	capacity = k;
+	remaining = k;
+}
 void cl_cartridge::start_replacing()
 {
-    if (replace_ticks_left > 0) return;
-    replace_ticks_left = 8;
-}
+	//--------------------------------------------------
+	// Начало ожидания загрузки чернил в картридж
+	// Параметры:
+	//     
+	// Возвращаемое значение:
+	//     Не возвращает
+	//--------------------------------------------------
 
+	// 1.1 Значение поля replace_ticks_left > 0
+	if (replace_ticks_left > 0)
+	{
+		return;
+	}
+	replace_ticks_left = 8;
+}
 void cl_cartridge::do_tact_replacing()
 {
-    if (replace_ticks_left <= 0) return;
-    replace_ticks_left--;
-    if (replace_ticks_left == 0)
-        remaining = capacity;
-}
+	//--------------------------------------------------
+	// Ожидание загрузки чернил в картридж
+	// Параметры:
+	//     
+	// Возвращаемое значение:
+	//     Не возвращает
+	//--------------------------------------------------
 
+	// 1.1 Значение поля replace_ticks_left <= 0
+
+	if (replace_ticks_left <= 0)
+	{
+		return;
+	}
+
+	// 1.2 replace_ticks_left --
+
+	replace_ticks_left--;
+
+	// 2.1 Значение поля replace_ticks_left == 0
+
+	if (replace_ticks_left == 0)
+	{
+		// 2.1 Присвоение полю remaining значения поля capacity 
+
+		remaining = capacity;
+	}
+}
 bool cl_cartridge::is_replacing()
 {
-    return replace_ticks_left > 0;
-}
+	//--------------------------------------------------
+	// Проверка загрузки чернил в картридж
+	// Параметры:
+	//     
+	// Возвращаемое значение:
+	//     bool, проверка завершена ли замена
+	//--------------------------------------------------
 
+	// 1.1 Возвращение replace_ticks_left > 0
+
+	return replace_ticks_left > 0;
+}
 void cl_cartridge::consume(int x)
 {
-    remaining -= x;
-    if (remaining < 0) remaining = 0;
+	//--------------------------------------------------
+	// Уменьшения количества листов, которые еще можно напечатать
+	// Параметры:
+	//     int x, количество листов
+	// Возвращаемое значение:
+	//     Не возвращает
+	//--------------------------------------------------
+
+	// 1.1 Уменьшение значения поля remaining на значение параметра x
+	remaining -= x;
+	// 2.1 Значение поля remaining < 0
+	if (remaining < 0)
+	{
+		// 2.1 Присвоение полю remaining значения 0
+		remaining = 0;
+	}
+}
+int cl_cartridge::get_remaining()
+{
+	return remaining;
 }

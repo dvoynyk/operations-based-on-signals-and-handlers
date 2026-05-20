@@ -1,30 +1,21 @@
-#ifndef __CL_DOCUMENT__H
-#define __CL_DOCUMENT__H
-
+#ifndef CL_DOCUMENT_H
+#define CL_DOCUMENT_H
 #include "cl_base.h"
-
-// Документ: может быть под ПК (в очереди ПК) или "текущий печатаемый" под принтером
-class cl_document : public cl_base
+class cl_document : public cl_base	// Класс документа, который печатается
 {
-    int pc_number = 0;
-    string title;
-    int pages_left = 0;
-    int tact_added = 0;
-
 public:
-    cl_document(cl_base* p_head_object, string s_object_name);
-
-    void init(int pc, const string& t, int pages, int tact);
-
-    int get_pc_number() { return pc_number; }
-    string get_title() { return title; }
-    int get_pages_left() { return pages_left; }
-    int get_tact_added() { return tact_added; }
-
-    void set_pages_left(int v) { pages_left = v; }
-    void clear();
-
-    int get_number_class() { return 6; } // не обязательно
+	cl_document(cl_base* p_head_object, string s_object_name);
+	void init(int pc, const string& t, int pages, int tact);	// Инициализация документа
+	int get_pc_number();	// Получение номера компьютера
+	string get_title();	// Получение названия документа
+	int get_pages_left();	// Получение количества страниц документа
+	int get_tact_added();	// Получение количества прошедших тактов
+	void set_pages_left(int v);	// Установка количества страниц документа
+	void clear();	// Удаление установленных значений полей для документа
+private:
+	int pc_number; 	// Номер ПК
+	string title; 	// Название документа
+	int pages_left; 	// Количество страниц документа
+	int tact_added; // Такт добавления документа
 };
-
-#endif
+#endif    // CL_DOCUMENT_H

@@ -1,31 +1,19 @@
-#ifndef __CL_CARTRIDGE__H
-#define __CL_CARTRIDGE__H
-
+#ifndef CL_CARTRIDGE_H
+#define CL_CARTRIDGE_H
 #include "cl_base.h"
-
-// Картридж
-class cl_cartridge : public cl_base
+class cl_cartridge : public cl_base	// Класс картриджа
 {
-    int capacity = 0;
-    int remaining = 0;
-    int replace_ticks_left = 0; // 8 тактов замены
-
 public:
-    cl_cartridge(cl_base* p_head_object, string s_object_name);
-
-    void init(int k);
-
-    int get_remaining() { return remaining; }
-
-    // REPLACE_CARTRIDGE: начать замену (8 тактов)
-    void start_replacing();
-
-    void do_tact_replacing();
-    bool is_replacing();
-
-    void consume(int x);
-
-    int get_number_class() { return 6; } // не обязательно
+	cl_cartridge(cl_base* p_head_object, string s_object_name);
+	void init(int k);	// Инициализация количества листов для картриджа
+	void start_replacing();	// Начало ожидания загрузки чернил в картридж
+	void do_tact_replacing();	// Ожидание загрузки чернил в картридж
+	bool is_replacing();	// Проверка загрузки чернил в картридж
+	void consume(int x);
+	int get_remaining();// Уменьшения количества листов, которые еще можно напечатать
+private:
+	int capacity = 0; 	// Количество листов, которое можно напечатать с полного картриджа
+	int remaining = 0; 	// Количество листов, которые еще можно напечатать
+	int replace_ticks_left = 0; 	// Количество тактов, оставшихся до окончания замены
 };
-
-#endif
+#endif    // CL_CARTRIDGE_H

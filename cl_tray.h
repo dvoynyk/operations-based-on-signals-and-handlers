@@ -1,31 +1,19 @@
-#ifndef __CL_TRAY__H
-#define __CL_TRAY__H
-
+#ifndef CL_TRAY_H
+#define CL_TRAY_H
 #include "cl_base.h"
-
-// Лоток бумаги
-class cl_tray : public cl_base
+class cl_tray : public cl_base	// Класс лотка бумаги
 {
-    int capacity = 0;
-    int sheets = 0;
-    int load_ticks_left = 0; // 3 такта загрузки
-
 public:
-    cl_tray(cl_base* p_head_object, string s_object_name);
-
-    void init(int m);
-
-    int get_sheets() { return sheets; }
-
-    // LOAD_PAPER_TRAY: начать загрузку (3 такта)
-    void start_loading();
-
-    void do_tact_loading();
-    bool is_loading();
-
-    void consume(int x);
-
-    int get_number_class() { return 5; } // не обязательно
+	cl_tray(cl_base* p_head_object, string s_object_name);
+	void init(int m);	// Инициализация лотка
+	void start_loading();	// Начало загрузки бумаги в лоток
+	void do_tact_loading();	// Выполнение одного такта загрузки
+	bool is_loading();	// Провека загрузки бумаги в лоток
+	void consume(int x);	// Уменьшение количества листов в лотке
+	int get_sheets();	// Получение текущего количества листов в лотке
+private:
+	int capacity; 	// Максимальная вместимость лотка
+	int sheets; 	// Текущее количество листов в лотке
+	int load_ticks_left; 	// Количество тактов, оставшихся до завершения загрузки
 };
-
-#endif
+#endif    // CL_TRAY_H

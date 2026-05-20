@@ -1,66 +1,146 @@
 #include "cl_pc.h"
 #include "cl_document.h"
 #include <sstream>
-
-cl_pc::cl_pc(cl_base* p_head_object, string s_object_name, int number)
-    : cl_base(p_head_object, s_object_name), pc_number(number)
+int cl_pc::get_pc_number()
 {
-}
+	//--------------------------------------------------
+	// Получение номера ПК
+	// Параметры:
+	//     
+	// Возвращаемое значение:
+	//     int, номер ПК
+	//--------------------------------------------------
+	// 1.1 Возвращение значения поля pc_number
 
-void cl_pc::push_document_name(const string& obj_name)
+	return pc_number;
+}
+bool cl_pc::is_on()
 {
-    doc_queue.push_back(obj_name);
-}
+	//--------------------------------------------------
+	// Проверка включения ПК
+	// Параметры:
+	//     
+	// Возвращаемое значение:
+	//     bool, готовность ПК
+	//--------------------------------------------------
 
-void cl_pc::remove_document_name(const string& obj_name)
+	// 1.1 Возвращение значения поля turned_on
+	return turned_on;
+}
+void cl_pc::push_document_name(string obj_name)
 {
-    for (int i = 0; i < (int)doc_queue.size(); i++)
-    {
-        if (doc_queue[i] == obj_name)
-        {
-            doc_queue.erase(doc_queue.begin() + i);
-            return;
-        }
-    }
-}
+	//--------------------------------------------------
+	// Добавление документа в очередь
+	// Параметры:
+	//     string obj_name, название документа
+	// Возвращаемое значение:
+	//     Не возвращает
+	//--------------------------------------------------
 
-vector<string> cl_pc::get_document_names()
+	// 1.1 Добавление значения obj_name в динамический массив doc_queue с очередью документов на ПК
+	doc_queue.push_back(obj_name);
+}
+void cl_pc::remove_document_name(string obj_name)
 {
-    return doc_queue; // копия
-}
+	//--------------------------------------------------
+	// Удаление документа из очереди
+	// Параметры:
+	//     string obj_name, название документа
+	// Возвращаемое значение:
+	//     Не возвращает
+	//--------------------------------------------------
 
+	// 1.1 Инициализация переменной счетчика i = 0
+	// 2.1 START cycle
+	// 2.1 i < размера массива doc_queue с документами на печать от ПК
+	for (int i = 0; i < (int)doc_queue.size(); i++)
+	{
+		// 3.1 i-й элемент doc_queue равен значению параметра obj_name
+		if (doc_queue[i] == obj_name)
+		{
+			doc_queue.erase(doc_queue.begin() + i);
+			return;
+		}
+	}
+}
+vector <string> cl_pc::get_document_names()
+{
+	//--------------------------------------------------
+	// Восстановление очереди после замены картриджа
+	// Параметры:
+	//     
+	// Возвращаемое значение:
+	//     vector <string>, динамический массив с названием документов
+	//--------------------------------------------------
+
+	// 1.1 Возвращение поля динамического массива doc_queue
+	return doc_queue;
+}
 int cl_pc::get_queue_size()
 {
-    return (int)doc_queue.size();
-}
+	//--------------------------------------------------
+	// Получение количества документов в очереди
+	// Параметры:
+	//     
+	// Возвращаемое значение:
+	//     int, размер динамического массива
+	//--------------------------------------------------
 
+	// 1.1 Возвращение размера динамического массива doc_queue
+	return doc_queue.size();
+}
 string cl_pc::get_condition_line()
 {
-    // PC condition j turned on doc1; doc2;
-    // PC condition j turned off
-    ostringstream out;
-    out << "PC condition " << pc_number << " ";
-    if (!turned_on)
-    {
-        out << "turned off";
-        return out.str();
-    }
+	//--------------------------------------------------
+	// Получение состояние ПК
+	// Параметры:
+	//     
+	// Возвращаемое значение:
+	//     string, состояние ПК
+	//--------------------------------------------------
 
-    out << "turned on";
+	// 1.1 Инициализация строковой переменной out
+	ostringstream out;
+	// 2.1 Присвоение переменной out значения "PC condition" + номер ПК
+	out << "PC condition " << pc_number << " ";
+	// 3.1 ПК выключен
+	if (!turned_on)
+	{
+		// 3.1 Возвращение строки out + "turned off"
+		out << "turned off";
+		return out.str();
+	}
 
-    for (int i = 0; i < (int)doc_queue.size(); i++)
-    {
-        cl_base* p = get_adress_subordinate_object_name(doc_queue[i]);
-        cl_document* d = (cl_document*)p;
-        if (d != nullptr)
-        {
-            out << " " << d->get_title() << ";";
-        }
-    }
-    return out.str();
+	// 3.2 out = out + "turned on"
+	out << "turned on";
+
+
+	// 4.1 Инициализация переменной счетчика i = 0
+	// 5.1 START cycle
+	// 5.1 i < размера массива с очередью документов для ПК doc_queue
+	for (int i = 0; i < doc_queue.size(); i++)
+	{
+		// 5.1 Инициализация указателя p на объект класса cl_base адресом i-го элемента массива doc_queue
+		cl_base* p = get_adress_subordinate_object_name(doc_queue[i]);
+		// 6.1 Инициализация указателя d на объекта класса cl_document приведенным типом значения указателя p
+		cl_document* d = (cl_document*)p;
+		// 7.1 d не равен значению нулевого указателя
+		if (d != nullptr)
+		{
+			// 7.1 out = out + называние объекта документа по адресу d
+			out << "" << d->get_title() << ";";
+		}
+	}
+	return out.str();
+
+}
+
+cl_pc::cl_pc(cl_base* p_head_object, string s_object_name, int number)
+	: cl_base(p_head_object, s_object_name)
+{
+	pc_number = number;
 }
 
 void cl_pc::signal_to_printer(string& s)
 {
-    // Ничего не меняем. Содержимое s будет обработано принтером.
 }
